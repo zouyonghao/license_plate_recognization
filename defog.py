@@ -4,7 +4,7 @@ import numpy as np
 
 
 def zm_min_filter_gray(src, r=7):
-    '''''最小值滤波，r是滤波器半径'''
+    """最小值滤波，r是滤波器半径"""
     if r <= 0:
         return src
     h, w = src.shape[:2]
@@ -18,7 +18,7 @@ def zm_min_filter_gray(src, r=7):
 
 
 def guided_filter(I, p, r, eps):
-    '''''引导滤波，直接参考网上的matlab代码'''
+    """引导滤波，直接参考网上的matlab代码"""
     height, width = I.shape
     m_I = cv2.boxFilter(I, -1, (r, r))
     m_p = cv2.boxFilter(p, -1, (r, r))
@@ -37,7 +37,7 @@ def guided_filter(I, p, r, eps):
 
 
 def get_v1(m, r, eps, w, maxV1):  # 输入rgb图像，值范围[0,1]
-    '''''计算大气遮罩图像V1和光照值A, V1 = 1-t/A'''
+    """计算大气遮罩图像V1和光照值A, V1 = 1-t/A"""
     V1 = np.min(m, 2)  # 得到暗通道图像
     V1 = guided_filter(V1, zm_min_filter_gray(V1, 7), r, eps)  # 使用引导滤波优化
     bins = 2000
