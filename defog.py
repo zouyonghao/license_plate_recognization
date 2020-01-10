@@ -1,10 +1,15 @@
 # coding=utf-8
+
+# reference from https://www.cnblogs.com/x1mercy/p/7824678.html
+
+import os
+
 import cv2
 import numpy as np
 
 
 def zm_min_filter_gray(src, r=7):
-    '''''最小值滤波，r是滤波器半径'''
+    """最小值滤波，r是滤波器半径"""
     if r <= 0:
         return src
     h, w = src.shape[:2]
@@ -18,7 +23,7 @@ def zm_min_filter_gray(src, r=7):
 
 
 def guided_filter(I, p, r, eps):
-    '''''引导滤波，直接参考网上的matlab代码'''
+    """引导滤波，直接参考网上的matlab代码"""
     height, width = I.shape
     m_I = cv2.boxFilter(I, -1, (r, r))
     m_p = cv2.boxFilter(p, -1, (r, r))
@@ -37,7 +42,7 @@ def guided_filter(I, p, r, eps):
 
 
 def get_v1(m, r, eps, w, maxV1):  # 输入rgb图像，值范围[0,1]
-    '''''计算大气遮罩图像V1和光照值A, V1 = 1-t/A'''
+    """计算大气遮罩图像V1和光照值A, V1 = 1-t/A"""
     V1 = np.min(m, 2)  # 得到暗通道图像
     V1 = guided_filter(V1, zm_min_filter_gray(V1, 7), r, eps)  # 使用引导滤波优化
     bins = 2000
@@ -67,8 +72,23 @@ def de_haze(m, r=81, eps=0.001, w=0.95, maxV1=0.80, bGamma=False):
 if __name__ == '__main__':
     # m = deHaze(np.array(cv2.imread('images/fuxingjj01120051111184445227.jpg')) / 255.0) * 255
     # m = deHaze(np.array(cv2.imread('images/12.jpeg')) / 255.0) * 255
-    m = de_haze(np.array(cv2.imread('images/fuxingjj01120051111184252515.jpg')) / 255.0) * 255
+    # m = de_haze(np.array(cv2.imread('images/fuxingjj01120051111184252515.jpg')) / 255.0) * 255
     # cv2.imwrite('defog.jpg', m)
     # m = de_haze(np.array(cv2.imread('test1.png')) / 255.0) * 255
 
-    cv2.imwrite('defog_3.jpg', m)
+    # cv2.imwrite('defog_3.jpg', m)
+    original_dirs = ["images/normal", "images/updown_split", "images/two_line", "images/white"]
+    output_dir = "images/processed"
+
+    for original_dir in original_dirs:
+        with os.scandir(original_dir) as entries:
+            for entry in entries:
+                original_image = cv2.imread(original_dir + "/" + entry.name)
+
+                lookUpTable = np.empty((1, 256), np.uint8)
+                for i in range(256):
+                    lookUpTable[0, i] = np.clip(pow(i / 255.0, 0.4) * 255.0, 0, 255)
+                original_image = cv2.LUT(original_image, lookUpTable)
+                m = de_haze(np.array(original_image) / 255.0) * 255
+
+                cv2.imwrite(output_dir + "/" + entry.name, m)
