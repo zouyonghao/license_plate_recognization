@@ -15,7 +15,8 @@ def ocr(image):
     img = i.read()
     # message = client.basicGeneral(img)
     try :
-        message = client.basicAccurate(img)
+        message = client.basicGeneral(img)
+        # message = client.basicAccurate(img)
     except:
         return ""
 
